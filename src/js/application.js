@@ -94,22 +94,27 @@ export class Application {
   }
 
   setupLocalVideo() {
-    this.localVideo = document.getElementById( 'local-video' );
-    console.log('localVideo', this.localVideo);
+    this.localVideo = document.getElementById("local-video");
+    console.log("localVideo", this.localVideo);
 
-    if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
-      var constraints = { video: { width: 1280, height: 720, facingMode: 'user' } };
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      var constraints = {
+        video: { width: 1280, height: 720, facingMode: "user" },
+      };
 
-      navigator.mediaDevices.getUserMedia( constraints ).then( ( stream ) => {
-        console.log('localVideo', this.localVideo);
-        // apply the stream to the video element used in the texture
-        this.localVideo.srcObject = stream;
-        this.localVideo.play();
-      } ).catch( function ( error ) {
-        console.error( 'Unable to access the camera/webcam.', error );
-      } );
+      navigator.mediaDevices
+        .getUserMedia(constraints)
+        .then(stream => {
+          console.log("localVideo", this.localVideo);
+          // apply the stream to the video element used in the texture
+          this.localVideo.srcObject = stream;
+          this.localVideo.play();
+        })
+        .catch(function(error) {
+          console.error("Unable to access the camera/webcam.", error);
+        });
     } else {
-      console.error( 'MediaDevices interface not available.' );
+      console.error("MediaDevices interface not available.");
     }
   }
 
@@ -117,12 +122,10 @@ export class Application {
     // const [x, y] = this.getNDCCoordinates(event, true);
     // this.raycaster.setFromCamera({ x, y }, this.camera);
     // const intersects = this.raycaster.intersectObjects(this.scene.children);
-
     // if (intersects.length > 0) {
     //   const hexColor = Math.random() * 0xffffff;
     //   const intersection = intersects[0];
     //   intersection.object.material.color.setHex(hexColor);
-
     //   const { direction, origin } = this.raycaster.ray;
     //   const arrow = new THREE.ArrowHelper(direction, origin, 100, hexColor);
     //   this.scene.add(arrow);
@@ -391,7 +394,7 @@ export class Application {
   addVideoGroup(radius) {
     const geometry = new THREE.CylinderGeometry(radius, radius, 2, 32);
 
-    var texture = new THREE.VideoTexture( this.localVideo );
+    var texture = new THREE.VideoTexture(this.localVideo);
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
     texture.flipY = false;
@@ -399,7 +402,7 @@ export class Application {
     const material = new THREE.MeshBasicMaterial({ map: texture });
     const vc = new THREE.Mesh(geometry, material);
     vc.name = "LocalVideoCylinder";
-    vc.rotation.set(Math.PI / 2, -Math.PI / 2, 0)
+    vc.rotation.set(Math.PI / 2, -Math.PI / 2, 0);
 
     const group = new THREE.Group();
     group.name = "LocalVideoGroup";
@@ -411,7 +414,7 @@ export class Application {
     vc.on("mouseover", this.showTooltip);
     vc.on("mouseout", this.hideTooltip);
 
-    this.localVideo.addEventListener('loadeddata', () => {
+    this.localVideo.addEventListener("loadeddata", () => {
       // These values are fractions of 1 where 1 is covering the object precisely.
       // repeatX / repeatY should be the inverse of w/h
       const repeatX = this.localVideo.videoHeight / this.localVideo.videoWidth;
