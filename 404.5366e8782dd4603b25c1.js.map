@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/js/404.js"],"names":["window","toggleMobileNav"],"mappings":"yFAAA,uBAIAA,OAAOC,gBAAkBA,M","file":"404.5366e8782dd4603b25c1.js","sourcesContent":["import \"../css/index.css\";\n\nimport { toggleMobileNav } from \"./components/navbar\";\n\nwindow.toggleMobileNav = toggleMobileNav;\n"],"sourceRoot":""}
