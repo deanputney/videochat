@@ -48,6 +48,8 @@ export class Application {
   }
 
   init(canvas) {
+    this.setupLocalVideo();
+
     const showGUI = false;
     window.addEventListener("resize", this.handleResize);
     this.setupScene();
@@ -66,24 +68,12 @@ export class Application {
     }
 
     this.addFloor(100, 100);
-    this.addCube(20);
-    this.addCustomMesh();
-
-    const particleSpecs = { spread: { x: 50, y: 100, z: 50 } };
-    this.addParticleSystem(300, 5, particleSpecs);
-
-    const boxSpecs = {
-      depth: 20,
-      height: 10,
-      spread: { x: 20, y: 20, z: 50 },
-      width: 5,
-    };
-    this.addGroupObject(10, boxSpecs);
+    this.addVideoGroup(20);
   }
 
   render() {
     this.controls.update();
-    this.updateCustomMesh();
+    this.updateVideoCylinder();
     this.renderer.render(this.scene, this.camera);
     // when render is invoked via requestAnimationFrame(this.render) there is
     // no 'this', so either we bind it explicitly or use an es6 arrow function.
@@ -103,20 +93,40 @@ export class Application {
     this.tooltip = div;
   }
 
-  handleClick(event) {
-    const [x, y] = this.getNDCCoordinates(event, true);
-    this.raycaster.setFromCamera({ x, y }, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.scene.children);
+  setupLocalVideo() {
+    this.localVideo = document.getElementById( 'local-video' );
+    console.log('localVideo', this.localVideo);
 
-    if (intersects.length > 0) {
-      const hexColor = Math.random() * 0xffffff;
-      const intersection = intersects[0];
-      intersection.object.material.color.setHex(hexColor);
+    if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
+      var constraints = { video: { width: 1280, height: 720, facingMode: 'user' } };
 
-      const { direction, origin } = this.raycaster.ray;
-      const arrow = new THREE.ArrowHelper(direction, origin, 100, hexColor);
-      this.scene.add(arrow);
+      navigator.mediaDevices.getUserMedia( constraints ).then( ( stream ) => {
+        console.log('localVideo', this.localVideo);
+        // apply the stream to the video element used in the texture
+        this.localVideo.srcObject = stream;
+        this.localVideo.play();
+      } ).catch( function ( error ) {
+        console.error( 'Unable to access the camera/webcam.', error );
+      } );
+    } else {
+      console.error( 'MediaDevices interface not available.' );
     }
+  }
+
+  handleClick(event) {
+    // const [x, y] = this.getNDCCoordinates(event, true);
+    // this.raycaster.setFromCamera({ x, y }, this.camera);
+    // const intersects = this.raycaster.intersectObjects(this.scene.children);
+
+    // if (intersects.length > 0) {
+    //   const hexColor = Math.random() * 0xffffff;
+    //   const intersection = intersects[0];
+    //   intersection.object.material.color.setHex(hexColor);
+
+    //   const { direction, origin } = this.raycaster.ray;
+    //   const arrow = new THREE.ArrowHelper(direction, origin, 100, hexColor);
+    //   this.scene.add(arrow);
+    // }
   }
 
   handleMouseMove(event) {
@@ -194,6 +204,7 @@ export class Application {
     const near = 0.1;
     const far = 10000;
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    // this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     this.camera.name = CAMERA_NAME;
     this.camera.position.set(100, 100, 100);
     this.camera.lookAt(this.scene.position);
@@ -232,23 +243,23 @@ export class Application {
 
     const dirLightHelper = new THREE.DirectionalLightHelper(dirLight, 10);
     dirLightHelper.name = `${DIRECTIONAL_LIGHT_NAME} Helper`;
-    this.scene.add(dirLightHelper);
+    // this.scene.add(dirLightHelper);
 
     const dirLightCameraHelper = new THREE.CameraHelper(dirLight.shadow.camera);
     dirLightCameraHelper.name = `${DIRECTIONAL_LIGHT_NAME} Shadow Camera Helper`;
-    this.scene.add(dirLightCameraHelper);
+    // this.scene.add(dirLightCameraHelper);
 
     const spotLight = this.scene.getObjectByName(SPOT_LIGHT_NAME);
 
     const spotLightHelper = new THREE.SpotLightHelper(spotLight);
     spotLightHelper.name = `${SPOT_LIGHT_NAME} Helper`;
-    this.scene.add(spotLightHelper);
+    // this.scene.add(spotLightHelper);
 
     const spotLightCameraHelper = new THREE.CameraHelper(
       spotLight.shadow.camera
     );
     spotLightCameraHelper.name = `${SPOT_LIGHT_NAME} Shadow Camera Helper`;
-    this.scene.add(spotLightCameraHelper);
+    // this.scene.add(spotLightCameraHelper);
   }
 
   setupRay() {
@@ -366,6 +377,7 @@ export class Application {
   addCube(side) {
     const geometry = new THREE.CubeGeometry(side, side, side);
     const material = new THREE.MeshLambertMaterial({ color: 0xfbbc05 });
+
     const cube = new THREE.Mesh(geometry, material);
     cube.name = "Cube";
     cube.position.set(0, side / 2, 0);
@@ -374,6 +386,44 @@ export class Application {
     cube.cursor = "pointer";
     cube.on("mouseover", this.showTooltip);
     cube.on("mouseout", this.hideTooltip);
+  }
+
+  addVideoGroup(radius) {
+    const geometry = new THREE.CylinderGeometry(radius, radius, 2, 32);
+
+    var texture = new THREE.VideoTexture( this.localVideo );
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.flipY = false;
+
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const vc = new THREE.Mesh(geometry, material);
+    vc.name = "LocalVideoCylinder";
+    vc.rotation.set(Math.PI / 2, -Math.PI / 2, 0)
+
+    const group = new THREE.Group();
+    group.name = "LocalVideoGroup";
+    group.add(vc);
+    group.position.set(0, radius, 0);
+    this.scene.add(group);
+
+    vc.cursor = "pointer";
+    vc.on("mouseover", this.showTooltip);
+    vc.on("mouseout", this.hideTooltip);
+
+    this.localVideo.addEventListener('loadeddata', () => {
+      // These values are fractions of 1 where 1 is covering the object precisely.
+      // repeatX / repeatY should be the inverse of w/h
+      const repeatX = this.localVideo.videoHeight / this.localVideo.videoWidth;
+      const repeatY = 1;
+      texture.repeat.set(repeatX, repeatY);
+      texture.offset.x = 0.25;
+    });
+  }
+
+  updateVideoCylinder() {
+    const vg = this.scene.getObjectByName("LocalVideoGroup");
+    vg.lookAt(this.camera.position);
   }
 
   /**

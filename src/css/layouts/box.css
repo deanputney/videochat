@@ -18,7 +18,5 @@
  */
 
 .box {
-  --space: var(--geometry-space-small);
 
-  padding: var(--space);
 }

@@ -2,8 +2,7 @@
 <html lang="en">
   ${require('../fragments/head.html')}
   <body class="site">
-    ${require('../fragments/navbar.html')}
-    <main class="box single-responsive-element">
+    <main class="box">
       <figure class="no-margins">
         <div class="canvas-container-outer preserve-aspect-ratio">
           <div class="canvas-container-inner" data-cy="canvas-container">
@@ -11,11 +10,10 @@
           </div>
         </div>
       </figure>
-      <figcaption>
-        A scene with a spotlight, a directional light, an ambient light, a
-        particle system, a custom material and several helpers.
-      </figcaption>
     </main>
-    ${require('../fragments/footer.html')}
+
+    <div id="videos">
+      <video id="local-video" autoplay></video>
+    </div>
   </body>
 </html>

@@ -1,0 +1,10 @@
+#videos {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+#videos video {
+  width: 200px;
+  height: auto;
+}
