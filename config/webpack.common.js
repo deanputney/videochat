@@ -131,7 +131,7 @@ const commonConfigFn = (env = {}, argv = {}) => {
   }
   console.log(`Prepare ${argv.mode.toUpperCase()} build`);
 
-  const APP_NAME = `Three.js ES6 Webpack 4 Project Starter (${argv.mode})`;
+  const APP_NAME = `Dean's Video Chat (${argv.mode})`;
   const PUBLIC_URL = env.publicUrl;
 
   // In production html-webpack-plugin should automatically minify HTML
