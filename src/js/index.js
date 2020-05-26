@@ -31,4 +31,30 @@ connection.session = {
 };
 connection.videosContainer = document.getElementById("videos");
 
+connection.onstream = function(e) {
+    var parentNode = connection.videosContainer;
+    parentNode.insertBefore(e.mediaElement, parentNode.firstChild);
+
+    const radius = 20
+    const position = new THREE.Vector3(Math.random() * 200 - 100, radius, Math.random() * 200 - 100)
+    app.addVideoGroup(e.mediaElement, radius, position)
+
+    var played = e.mediaElement.play();
+
+    if (typeof played !== 'undefined') {
+        played.catch(function() {
+            /*** iOS 11 doesn't allow automatic play and rejects ***/
+        }).then(function() {
+            setTimeout(function() {
+                e.mediaElement.play();
+            }, 2000);
+        });
+        return;
+    }
+
+    setTimeout(function() {
+        e.mediaElement.play();
+    }, 2000);
+};
+
 connection.openOrJoin("your-room-id");

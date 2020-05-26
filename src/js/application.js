@@ -48,8 +48,6 @@ export class Application {
   }
 
   init(canvas) {
-    this.setupLocalVideo();
-
     const showGUI = false;
     window.addEventListener("resize", this.handleResize);
     this.setupScene();
@@ -68,12 +66,13 @@ export class Application {
     }
 
     this.addFloor(100, 100);
-    this.addVideoGroup(20);
+
+    this.videoGroups = [];
   }
 
   render() {
     this.controls.update();
-    this.updateVideoCylinder();
+    this.updateVideoGroups();
     this.renderer.render(this.scene, this.camera);
     // when render is invoked via requestAnimationFrame(this.render) there is
     // no 'this', so either we bind it explicitly or use an es6 arrow function.
@@ -391,42 +390,50 @@ export class Application {
     cube.on("mouseout", this.hideTooltip);
   }
 
-  addVideoGroup(radius) {
+  addVideoGroup(videoElement, radius, position = new THREE.Vector3(0, radius, 0)) {
     const geometry = new THREE.CylinderGeometry(radius, radius, 2, 32);
 
-    var texture = new THREE.VideoTexture(this.localVideo);
+    var texture = new THREE.VideoTexture(videoElement);
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
     texture.flipY = false;
 
     const material = new THREE.MeshBasicMaterial({ map: texture });
     const vc = new THREE.Mesh(geometry, material);
-    vc.name = "LocalVideoCylinder";
+    vc.name = "VideoCylinder";
     vc.rotation.set(Math.PI / 2, -Math.PI / 2, 0);
 
     const group = new THREE.Group();
-    group.name = "LocalVideoGroup";
+    group.name = "VideoGroup";
     group.add(vc);
-    group.position.set(0, radius, 0);
+    group.position.set(position.x, position.y, position.z);
     this.scene.add(group);
+    this.videoGroups.push(group);
 
     vc.cursor = "pointer";
     vc.on("mouseover", this.showTooltip);
     vc.on("mouseout", this.hideTooltip);
 
-    this.localVideo.addEventListener("loadeddata", () => {
+    videoElement.addEventListener("loadeddata", () => {
       // These values are fractions of 1 where 1 is covering the object precisely.
       // repeatX / repeatY should be the inverse of w/h
-      const repeatX = this.localVideo.videoHeight / this.localVideo.videoWidth;
+      const repeatX = videoElement.videoHeight / videoElement.videoWidth;
       const repeatY = 1;
       texture.repeat.set(repeatX, repeatY);
       texture.offset.x = 0.25;
     });
   }
 
-  updateVideoCylinder() {
-    const vg = this.scene.getObjectByName("LocalVideoGroup");
-    vg.lookAt(this.camera.position);
+  updateVideoGroup(group) {
+    if (group) {
+      group.lookAt(this.camera.position);
+    }
+  }
+
+  updateVideoGroups() {
+    for (const group of this.videoGroups) {
+      this.updateVideoGroup(group);
+    }
   }
 
   /**
